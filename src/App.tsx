@@ -51,6 +51,25 @@ export default function App() {
   const [history, setHistory] = useState<SavedReading[]>([]);
   const [activeTab, setActiveTab] = useState<'reader' | 'history'>('reader');
   const [selectedItem, setSelectedItem] = useState<SavedReading | null>(null);
+  const [hasApiKey, setHasApiKey] = useState<boolean>(true);
+
+  // Check for API key on mount
+  useEffect(() => {
+    const checkApiKey = async () => {
+      if ((window as any).aistudio) {
+        const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+        setHasApiKey(hasKey);
+      }
+    };
+    checkApiKey();
+  }, []);
+
+  const handleOpenKeyDialog = async () => {
+    if ((window as any).aistudio) {
+      await (window as any).aistudio.openSelectKey();
+      setHasApiKey(true); // Assume success as per guidelines
+    }
+  };
   
   // Editable fields
   const [customerName, setCustomerName] = useState('');
@@ -118,7 +137,13 @@ export default function App() {
       setCustomerId(data.customerId || '');
       setPeaMeterId(data.peaMeterId || '');
     } catch (err: any) {
-      setError(err.message || "เกิดข้อผิดพลาดในการประมวลผล");
+      const errorMessage = err.message || "";
+      if (errorMessage.includes("API key is missing") || errorMessage.includes("Requested entity was not found")) {
+        setHasApiKey(false);
+        setError("กรุณาเลือก API Key ก่อนเริ่มการวิเคราะห์");
+      } else {
+        setError(errorMessage || "เกิดข้อผิดพลาดในการประมวลผล");
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -279,12 +304,22 @@ export default function App() {
 
               {/* Error State */}
               {error && (
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-start gap-3 text-red-600">
-                  <AlertCircle className="shrink-0 mt-0.5" size={20} />
-                  <div>
-                    <p className="font-semibold text-sm">เกิดข้อผิดพลาด</p>
-                    <p className="text-xs opacity-80">{error}</p>
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex flex-col gap-3 text-red-600">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="shrink-0 mt-0.5" size={20} />
+                    <div>
+                      <p className="font-semibold text-sm">เกิดข้อผิดพลาด</p>
+                      <p className="text-xs opacity-80">{error}</p>
+                    </div>
                   </div>
+                  {!hasApiKey && (
+                    <button
+                      onClick={handleOpenKeyDialog}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 rounded-xl transition-all"
+                    >
+                      เลือก API Key
+                    </button>
+                  )}
                 </div>
               )}
 

@@ -1,6 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export interface TOUReading {
   reg111: number | null;
@@ -31,6 +30,8 @@ export interface TOUReading {
 }
 
 export async function analyzeMeterImage(base64Data: string, mimeType: string = "image/jpeg"): Promise<TOUReading> {
+  const apiKey = process.env.GEMINI_API_KEY || (window as any).process?.env?.API_KEY || "";
+  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3.1-pro-preview";
   
   const prompt = `Analyze this image or document of a TOU (Time of Use) electricity meter or a related document/sticker. 
