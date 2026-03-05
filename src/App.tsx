@@ -67,7 +67,8 @@ export default function App() {
   const handleOpenKeyDialog = async () => {
     if ((window as any).aistudio) {
       await (window as any).aistudio.openSelectKey();
-      setHasApiKey(true); // Assume success as per guidelines
+      setHasApiKey(true);
+      setError(null); // Clear error after selecting key
     }
   };
   
@@ -138,9 +139,13 @@ export default function App() {
       setPeaMeterId(data.peaMeterId || '');
     } catch (err: any) {
       const errorMessage = err.message || "";
-      if (errorMessage.includes("API key is missing") || errorMessage.includes("Requested entity was not found")) {
+      // Check for common API key errors
+      if (errorMessage.includes("API key is missing") || 
+          errorMessage.includes("Requested entity was not found") ||
+          errorMessage.includes("API_KEY_INVALID") ||
+          errorMessage.includes("403")) {
         setHasApiKey(false);
-        setError("กรุณาเลือก API Key ก่อนเริ่มการวิเคราะห์");
+        setError("กรุณาเลือก API Key (Paid) เพื่อเริ่มการวิเคราะห์");
       } else {
         setError(errorMessage || "เกิดข้อผิดพลาดในการประมวลผล");
       }
@@ -251,9 +256,19 @@ export default function App() {
                     <Upload size={32} />
                   </div>
                   <h3 className="text-lg font-semibold mb-1">อัปโหลดรูปภาพหรือ PDF มิเตอร์</h3>
-                  <p className="text-sm text-zinc-500 text-center max-w-xs">
+                  <p className="text-sm text-zinc-500 text-center max-w-xs mb-4">
                     ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกรูปภาพหรือไฟล์ PDF มิเตอร์ TOU ของคุณ
                   </p>
+                  
+                  {!hasApiKey && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleOpenKeyDialog(); }}
+                      className="bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs font-bold px-4 py-2 rounded-full flex items-center gap-2 transition-all"
+                    >
+                      <AlertCircle size={14} />
+                      กรุณาเลือก API Key ก่อนเริ่มใช้งาน
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">

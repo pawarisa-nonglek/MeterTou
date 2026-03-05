@@ -30,9 +30,16 @@ export interface TOUReading {
 }
 
 export async function analyzeMeterImage(base64Data: string, mimeType: string = "image/jpeg"): Promise<TOUReading> {
-  const apiKey = process.env.GEMINI_API_KEY || (window as any).process?.env?.API_KEY || "";
+  // Try to get the API key from multiple possible sources
+  // In AI Studio, process.env.API_KEY is injected after selection
+  const apiKey = (process.env.API_KEY) || (process.env.GEMINI_API_KEY) || "";
+  
+  if (!apiKey) {
+    throw new Error("API key is missing. Please select an API key.");
+  }
+
   const ai = new GoogleGenAI({ apiKey });
-  const model = "gemini-3.1-pro-preview";
+  const model = "gemini-1.5-flash"; // More stable for vision tasks in this environment
   
   const prompt = `Analyze this image or document of a TOU (Time of Use) electricity meter or a related document/sticker. 
   
