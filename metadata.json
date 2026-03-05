@@ -1,0 +1,7 @@
+{
+  "name": "Remix: TOU Meter Reader",
+  "description": "แอปพลิเคชันสำหรับอ่านค่าหน่วยมิเตอร์ไฟฟ้าแบบ TOU (Time of Use) จากรูปภาพโดยใช้ AI",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
